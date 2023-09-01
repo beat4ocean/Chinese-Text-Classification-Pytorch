@@ -99,10 +99,9 @@ if __name__ == "__main__":
 
     # 预测一条
     query = "火凤凰租房"
-    # print(pred.predict_text(query))
-
+    print(pred.predict_text(query))
     print(pred.predict_text_with_all_labels(query))
 
-    # # 预测一个列表
-    # querys = ["比亚迪路过", "240511480车友+"]
-    # print(pred.predict_list(querys))
+    # 预测一个列表
+    querys = ["比亚迪路过", "240511480车友+"]
+    print(pred.predict_list(querys))
