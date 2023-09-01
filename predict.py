@@ -1,3 +1,4 @@
+import argparse
 import jieba
 import pickle as pkl
 import os
@@ -23,11 +24,15 @@ class Predictor:
         self.model = self.x.Model(self.config).to('cpu')
         self.model.load_state_dict(torch.load(self.config.save_path, map_location='cpu'))
 
-        with open(os.path.join(dataset, 'data/class.txt'), 'r') as file:
-            lines = file.readlines()
-            for i, line in enumerate(lines):
-                class_name = line.strip()
-                key_map[i] = class_name
+        def get_key_map(dataset):
+            with open(os.path.join(dataset, 'data/class.txt'), 'r') as file:
+                lines = file.readlines()
+                for i, line in enumerate(lines):
+                    class_name = line.strip()
+                    key_map[i] = class_name
+            return key_map
+
+        self.key_map = get_key_map(dataset)
 
     def preprocess_texts(self, texts):
         words_lines = []
@@ -57,6 +62,16 @@ class Predictor:
             num = torch.argmax(outputs)
         return key_map[int(num)]
 
+    def predict_text_with_all_labels(self, query):
+        query = [query]
+        data = self.preprocess_texts(query)
+        with torch.no_grad():
+            outputs = self.model(data)
+            probabilities = torch.softmax(outputs, dim=0)
+            labels = key_map.values()
+            probabilities = [prob.item() for prob in probabilities]
+        return list(zip(labels, probabilities))
+
     def predict_list(self, queries):
         data = self.preprocess_texts(queries)
         with torch.no_grad():
@@ -66,17 +81,28 @@ class Predictor:
         return preds
 
 
+# 创建解析器
+parser = argparse.ArgumentParser()
+# 添加参数
+parser.add_argument('--model', type=str, default='TextRCNN', help='the model to be used')
+parser.add_argument('--dataset', type=str, default='data/Comments', help='the dataset path')
+# 解析参数
+args = parser.parse_args()
+
 if __name__ == "__main__":
-    # model_name = 'FastText'
-    model = 'TextRCNN'
-    dataset = 'data/THUCNews'
-    embedding = 'embedding_SougouNews.npz'
+    model = args.model
+    dataset = args.dataset
+    embedding = 'vocab.embedding.sougou.npz'
     use_word = False
+
     pred = Predictor(model, dataset, embedding, use_word)
 
     # 预测一条
-    query = "学费太贵怎么办？"
-    print(pred.predict_text(query))
-    # 预测一个列表
-    querys = ["学费太贵怎么办？", "泰国红衫军称可以接受阿披实和解路线图"]
-    print(pred.predict_list(querys))
+    query = "火凤凰租房"
+    # print(pred.predict_text(query))
+
+    print(pred.predict_text_with_all_labels(query))
+
+    # # 预测一个列表
+    # querys = ["比亚迪路过", "240511480车友+"]
+    # print(pred.predict_list(querys))
