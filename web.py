@@ -14,21 +14,32 @@ key_map = {}
 
 
 class Predictor:
-    def __init__(self, model, dataset, embedding, use_word=False):
-        # Initialize tokenizer based on word-level or char-level
-        if use_word:
-            self.tokenizer = lambda x: list(jieba.cut(x))  # word-level tokenizer using jieba
-        else:
-            self.tokenizer = lambda x: [y for y in x]  # char-level tokenizer
-        self.x = import_module('models.' + model)
+    def __init__(self, model_name, dataset, embedding, use_word=False):
+        self.use_word = use_word
+        self.tokenizer = self.get_tokenizer()
+        self.x = import_module('models.' + model_name)
         self.config = self.x.Config(dataset, embedding)
-        self.vocab = pkl.load(open(self.config.vocab_path, 'rb'))  # load vocab
+        self.vocab = self.load_vocab()
         self.pad_size = self.config.pad_size
-        self.model = self.x.Model(self.config).to('cpu')  # load and move model to cpu
-        self.model.load_state_dict(torch.load(self.config.save_path, map_location='cpu'))  # load model weights
+        self.model = self.load_model()
 
-        # Load label key map from dataset
         self.key_map = self.get_key_map(dataset)
+
+    def get_tokenizer(self):
+        if self.use_word:
+            return lambda x: list(jieba.cut(x))
+        else:
+            return lambda x: [y for y in x]
+
+    def load_vocab(self):
+        with open(self.config.vocab_path, 'rb') as f:
+            vocab = pkl.load(f)
+        return vocab
+
+    def load_model(self):
+        model = self.x.Model(self.config).to('cpu')
+        model.load_state_dict(torch.load(self.config.save_path, map_location='cpu'))
+        return model
 
     def get_key_map(self, dataset):
         key_map = {}

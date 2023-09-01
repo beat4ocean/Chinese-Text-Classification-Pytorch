@@ -10,29 +10,41 @@ key_map = {}
 
 
 class Predictor:
-
     def __init__(self, model_name, dataset, embedding, use_word=False):
-        if use_word:
-            # self.tokenizer = lambda x: x.split(' ')  # 以空格隔开，word-level
-            self.tokenizer = lambda x: list(jieba.cut(x))
-        else:
-            self.tokenizer = lambda x: [y for y in x]
+        self.use_word = use_word
+        self.tokenizer = self.get_tokenizer()
         self.x = import_module('models.' + model_name)
         self.config = self.x.Config(dataset, embedding)
-        self.vocab = pkl.load(open(self.config.vocab_path, 'rb'))
+        self.vocab = self.load_vocab()
         self.pad_size = self.config.pad_size
-        self.model = self.x.Model(self.config).to('cpu')
-        self.model.load_state_dict(torch.load(self.config.save_path, map_location='cpu'))
+        self.model = self.load_model()
 
-        def get_key_map(dataset):
-            with open(os.path.join(dataset, 'data/class.txt'), 'r') as file:
-                lines = file.readlines()
-                for i, line in enumerate(lines):
-                    class_name = line.strip()
-                    key_map[i] = class_name
-            return key_map
+        self.key_map = self.get_key_map(dataset)
 
-        self.key_map = get_key_map(dataset)
+    def get_tokenizer(self):
+        if self.use_word:
+            return lambda x: list(jieba.cut(x))
+        else:
+            return lambda x: [y for y in x]
+
+    def load_vocab(self):
+        with open(self.config.vocab_path, 'rb') as f:
+            vocab = pkl.load(f)
+        return vocab
+
+    def load_model(self):
+        model = self.x.Model(self.config).to('cpu')
+        model.load_state_dict(torch.load(self.config.save_path, map_location='cpu'))
+        return model
+
+    def get_key_map(self, dataset):
+        key_map = {}
+        with open(os.path.join(dataset, 'data/class.txt'), 'r') as file:
+            lines = file.readlines()
+            for i, line in enumerate(lines):
+                class_name = line.strip()
+                key_map[i] = class_name
+        return key_map
 
     def preprocess_texts(self, texts):
         words_lines = []
@@ -47,7 +59,6 @@ class Predictor:
                 else:
                     tokens = tokens[:self.pad_size]
                     seq_len = self.pad_size
-            # Convert words to ids
             for token in tokens:
                 words_line.append(self.vocab.get(token, self.vocab.get('<UNK>')))
             words_lines.append(words_line)
@@ -60,7 +71,7 @@ class Predictor:
         with torch.no_grad():
             outputs = self.model(data)
             num = torch.argmax(outputs)
-        return key_map[int(num)]
+        return self.key_map[int(num)]
 
     def predict_text_with_all_labels(self, query):
         query = [query]
@@ -68,7 +79,7 @@ class Predictor:
         with torch.no_grad():
             outputs = self.model(data)
             probabilities = torch.softmax(outputs, dim=0)
-            labels = key_map.values()
+            labels = self.key_map.values()
             probabilities = [prob.item() for prob in probabilities]
         return list(zip(labels, probabilities))
 
@@ -77,7 +88,7 @@ class Predictor:
         with torch.no_grad():
             outputs = self.model(data)
             nums = torch.argmax(outputs, dim=1)
-            preds = [key_map[int(num)] for num in list(np.array(nums))]
+            preds = [self.key_map[int(num)] for num in list(np.array(nums))]
         return preds
 
 
