@@ -7,7 +7,6 @@ from tqdm import tqdm
 import time
 from datetime import timedelta
 
-
 MAX_VOCAB_SIZE = 10000
 UNK, PAD = '<UNK>', '<PAD>'
 
@@ -81,6 +80,7 @@ def build_dataset(config, ues_word):
                 # -----------------
                 contents.append((words_line, int(label), seq_len, bigram, trigram))
         return contents  # [([...], 0), ([...], 1), ...]
+
     train = load_dataset(config.train_path, config.pad_size)
     dev = load_dataset(config.dev_path, config.pad_size)
     test = load_dataset(config.test_path, config.pad_size)
@@ -148,12 +148,13 @@ def get_time_dif(start_time):
     time_dif = end_time - start_time
     return timedelta(seconds=int(round(time_dif)))
 
+
 if __name__ == "__main__":
     '''提取预训练词向量'''
-    vocab_dir = "./THUCNews/data/vocab.pkl"
-    pretrain_dir = "./THUCNews/data/sgns.sogou.char"
+    vocab_dir = os.path.join(dataset, "data/vocab.pkl")
+    pretrain_dir = os.path.join(dataset, "data/sgns.sogou.char")
     emb_dim = 300
-    filename_trimmed_dir = "./THUCNews/data/vocab.embedding.sougou"
+    filename_trimmed_dir = os.path.join(dataset, "data/vocab.embedding.sougou")
     word_to_id = pkl.load(open(vocab_dir, 'rb'))
     embeddings = np.random.rand(len(word_to_id), emb_dim)
     f = open(pretrain_dir, "r", encoding='UTF-8')

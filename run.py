@@ -10,20 +10,24 @@ parser = argparse.ArgumentParser(description='Chinese Text Classification')
 parser.add_argument('--model', type=str, required=True, help='choose a model: TextCNN, TextRNN, FastText, TextRCNN, TextRNN_Att, DPCNN, Transformer')
 parser.add_argument('--embedding', default='pre_trained', type=str, help='random or pre_trained')
 parser.add_argument('--word', default=False, type=bool, help='True for word, False for char')
+parser.add_argument('--dataset', required=True, type=str, help=' choose a dataset')
 args = parser.parse_args()
 
-
 if __name__ == '__main__':
-    dataset = 'THUCNews'  # 数据集
+    # dataset = 'THUCNews'  # 数据集
+    dataset = args.dataset
 
     # 搜狗新闻:embedding_SougouNews.npz, 腾讯:embedding_Tencent.npz, 随机初始化:random
-    embedding = 'embedding_SougouNews.npz'
+    embedding = 'data/source/embedding_SougouNews.npz'
     if args.embedding == 'random':
         embedding = 'random'
-    model_name = args.model  # 'TextRCNN'  # TextCNN, TextRNN, FastText, TextRCNN, TextRNN_Att, DPCNN, Transformer
+    model_name = args.model
+    # FastText
     if model_name == 'FastText':
         from utils_fasttext import build_dataset, build_iterator, get_time_dif
+
         embedding = 'random'
+    # 'TextRCNN'  # TextCNN, TextRNN, FastText, TextRCNN, TextRNN_Att, DPCNN, Transformer
     else:
         from utils import build_dataset, build_iterator, get_time_dif
 
