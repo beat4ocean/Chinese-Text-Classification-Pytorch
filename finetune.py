@@ -18,8 +18,8 @@ args = parser.parse_args()
 if __name__ == '__main__':
     dataset = args.dataset
 
-    # 设置词向量路径
-    embedding = os.path.join(dataset, 'data/vocab.embedding.sougou.npz')
+    # 设置词向量文件名
+    embedding = 'vocab.embedding.sougou.npz'
 
     # 根据参数选择词向量类型
     if args.embedding == 'random':

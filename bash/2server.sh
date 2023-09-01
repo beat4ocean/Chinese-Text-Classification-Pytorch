@@ -1,5 +1,5 @@
 #!/bin/bash
 
-python predict.py \
+python server.py \
        --model TextRCNN \
        --dataset data/Comments

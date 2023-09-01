@@ -1,5 +1,5 @@
 #!/bin/bash
 
-python run.py \
+python finetune.py \
        --model TextRCNN \
        --dataset data/Comments/
