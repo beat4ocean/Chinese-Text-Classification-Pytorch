@@ -29,11 +29,11 @@
                 dataType: "json",
                 success: function (data) {
                     var result = "<ul>";
-                    // 显示结果
                     for (var i = 0; i < data.length; i++) {
-                        var label = data[i].label_des;
-                        var score = data[i].score.toFixed(2);
-                        result += "<li>" + label + ": " + score + "</li>";
+                        var label = data[i][0];
+                        var score = data[i][1].toFixed(2);
+                        var resultItem = label + ": " + score;
+                        result += "<li>" + resultItem + "</li>";
                     }
                     result += "</ul>";
                     $("#result").html(result);

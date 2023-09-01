@@ -103,7 +103,7 @@ def text_predict():
         return jsonify({"error": "Invalid input"})
 
     result_list = pred.predict_text_with_all_labels(text)
-    # print(result_list)
+    print(result_list)
 
     # 构建返回的 JSON 数据
     return jsonify(result_list)
