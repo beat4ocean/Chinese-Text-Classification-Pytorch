@@ -6,6 +6,7 @@ import pickle as pkl
 from tqdm import tqdm
 import time
 from datetime import timedelta
+import jieba
 
 MAX_VOCAB_SIZE = 10000
 UNK, PAD = '<UNK>', '<PAD>'
@@ -29,7 +30,7 @@ def build_vocab(file_path, tokenizer, max_size, min_freq):
 
 def build_dataset(config, ues_word):
     if ues_word:
-        tokenizer = lambda x: x.split(' ')  # 以空格隔开，word-level
+        tokenizer = lambda x: list(jieba.cut(x))
     else:
         tokenizer = lambda x: [y for y in x]  # char-level
     if os.path.exists(config.vocab_path):
@@ -99,9 +100,6 @@ class DatasetIterater(object):
         self.device = device
 
     def _to_tensor(self, datas):
-        # xx = [xxx[2] for xxx in datas]
-        # indexx = np.argsort(xx)[::-1]
-        # datas = np.array(datas)[indexx]
         x = torch.LongTensor([_[0] for _ in datas]).to(self.device)
         y = torch.LongTensor([_[1] for _ in datas]).to(self.device)
         bigram = torch.LongTensor([_[3] for _ in datas]).to(self.device)

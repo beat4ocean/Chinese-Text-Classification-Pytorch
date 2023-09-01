@@ -117,3 +117,31 @@ def evaluate(config, model, data_iter, test=False):
         confusion = metrics.confusion_matrix(labels_all, predict_all)
         return acc, loss_total / len(data_iter), report, confusion
     return acc, loss_total / len(data_iter)
+
+# def text_to_tensor(text, vocab):
+#     # 分割文本为单词或字符列表
+#     tokens = text.split()
+#
+#     # 将单词或字符映射为整数
+#     ids = [vocab.get(token, vocab['<UNK>']) for token in tokens]
+#
+#     # 如果文本超过固定长度，进行截断或填充
+#     max_seq_len = 100
+#     if len(ids) > max_seq_len:
+#         ids = ids[:max_seq_len]
+#     else:
+#         ids = ids + [vocab['<PAD>']] * (max_seq_len - len(ids))
+#
+#     # 将整数序列转换为张量
+#     tensor = torch.LongTensor(ids)
+#
+#     return tensor
+#
+#
+# def predict(config, model, tensor, test=False):
+#     model.eval()
+#     predict = None
+#     with torch.no_grad():
+#         output = model(tensor)
+#         predic = torch.max(outputs.data, 1)[1].cpu().numpy()
+#     return predic
