@@ -15,27 +15,29 @@ key_map = {}
 
 class Predictor:
     def __init__(self, model, dataset, embedding, use_word=False):
+        # Initialize tokenizer based on word-level or char-level
         if use_word:
-            # self.tokenizer = lambda x: x.split(' ')  # 以空格隔开，word-level
-            self.tokenizer = lambda x: list(jieba.cut(x))
+            self.tokenizer = lambda x: list(jieba.cut(x))  # word-level tokenizer using jieba
         else:
-            self.tokenizer = lambda x: [y for y in x]
+            self.tokenizer = lambda x: [y for y in x]  # char-level tokenizer
         self.x = import_module('models.' + model)
         self.config = self.x.Config(dataset, embedding)
-        self.vocab = pkl.load(open(self.config.vocab_path, 'rb'))
+        self.vocab = pkl.load(open(self.config.vocab_path, 'rb'))  # load vocab
         self.pad_size = self.config.pad_size
-        self.model = self.x.Model(self.config).to('cpu')
-        self.model.load_state_dict(torch.load(self.config.save_path, map_location='cpu'))
+        self.model = self.x.Model(self.config).to('cpu')  # load and move model to cpu
+        self.model.load_state_dict(torch.load(self.config.save_path, map_location='cpu'))  # load model weights
 
-        def get_key_map(dataset):
-            with open(os.path.join(dataset, 'data/class.txt'), 'r') as file:
-                lines = file.readlines()
-                for i, line in enumerate(lines):
-                    class_name = line.strip()
-                    key_map[i] = class_name
-            return key_map
+        # Load label key map from dataset
+        self.key_map = self.get_key_map(dataset)
 
-        self.key_map = get_key_map(dataset)
+    def get_key_map(self, dataset):
+        key_map = {}
+        with open(os.path.join(dataset, 'data/class.txt'), 'r') as file:
+            lines = file.readlines()
+            for i, line in enumerate(lines):
+                class_name = line.strip()
+                key_map[i] = class_name
+        return key_map
 
     def preprocess_texts(self, texts):
         words_lines = []
@@ -63,7 +65,7 @@ class Predictor:
         with torch.no_grad():
             outputs = self.model(data)
             probabilities = torch.softmax(outputs, dim=0)
-            labels = key_map.values()
+            labels = self.key_map.values()
             probabilities = [prob.item() for prob in probabilities]
         return list(zip(labels, probabilities))
 
@@ -96,14 +98,13 @@ def text_predict():
     # 获取 POST 请求的数据
     data = request.get_json()  # 获取 POST 请求的 JSON 数据
     text = data.get('text')  # 获取 content 字段的值
-    # print("text:", text)
 
     # 输入验证
     if text is None or text.strip() == "":
         return jsonify({"error": "Invalid input"})
 
     result_list = pred.predict_text_with_all_labels(text)
-    print(result_list)
+    print("text:", text, "\tpredict", result_list)
 
     # 构建返回的 JSON 数据
     return jsonify(result_list)
