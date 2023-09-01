@@ -69,7 +69,8 @@ class Predictor:
 if __name__ == "__main__":
     model = 'FastText'
     # model = 'TextRCNN'
-    dataset = 'data/Comments'
+    # dataset = 'data/Comments'
+    dataset = 'data/THUCNews'
     embedding = 'embedding_SougouNews.npz'
     use_word = False
     pred = Predictor(model, dataset, embedding, use_word)
