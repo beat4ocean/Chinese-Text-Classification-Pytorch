@@ -12,6 +12,22 @@ app = Flask(__name__)
 
 key_map = {}
 
+# 创建解析器
+parser = argparse.ArgumentParser()
+# 添加参数
+parser.add_argument('--model', type=str, default='TextRCNN', help='the model to be used')
+parser.add_argument('--dataset', type=str, default='data/Comments', help='the dataset path')
+parser.add_argument('--use_word', default=0, type=int, help='1 for word, 0 for char')
+parser.add_argument('--port', type=int, default=5000, help='the server port')
+# 解析参数
+args = parser.parse_args()
+
+model = args.model
+dataset = args.dataset
+use_word = bool(args.use_word)
+port = args.port
+embedding = 'vocab.embedding.npz'
+
 
 class Predictor:
     def __init__(self, model_name, dataset, embedding, use_word):
@@ -81,17 +97,6 @@ class Predictor:
         return list(zip(labels, probabilities))
 
 
-# 创建解析器
-parser = argparse.ArgumentParser()
-# 添加参数
-parser.add_argument('--model', type=str, default='TextRCNN', help='the model to be used')
-parser.add_argument('--dataset', type=str, default='data/Comments', help='the dataset path')
-# 解析参数
-args = parser.parse_args()
-
-model = args.model
-dataset = args.dataset
-
 with open(os.path.join(dataset, 'data/class.txt'), 'r') as file:
     lines = file.readlines()
     for i, line in enumerate(lines):
@@ -121,21 +126,7 @@ def text_predict():
     return jsonify(result_list)
 
 
-# 创建解析器
-parser = argparse.ArgumentParser()
-# 添加参数
-parser.add_argument('--model', type=str, default='TextRCNN', help='the model to be used')
-parser.add_argument('--dataset', type=str, default='data/Comments', help='the dataset path')
-parser.add_argument('--use_word', default=0, type=int, help='1 for word, 0 for char')
-# 解析参数
-args = parser.parse_args()
-
 if __name__ == "__main__":
-    model = args.model
-    dataset = args.dataset
-    use_word = bool(args.use_word)
-    embedding = 'vocab.embedding.npz'
-
     pred = Predictor(model, dataset, embedding, use_word)
 
-    app.run(host='0.0.0.0', port=5001)
+    app.run(host='0.0.0.0', port=port)

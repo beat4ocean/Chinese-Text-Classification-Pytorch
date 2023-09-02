@@ -3,4 +3,5 @@
 python server.py \
        --model TextRCNN \
        --dataset data/Comments \
-       --use_word 0
+       --use_word 0 \
+       --port 5432
