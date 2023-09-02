@@ -19,7 +19,7 @@ class Config(object):
         self.save_path = os.path.join(dataset, 'saved_dict', self.model_name + '.ckpt')  # 模型训练结果
         self.log_path = os.path.join(dataset, 'log', self.model_name)
         self.embedding_pretrained = torch.tensor(np.load(os.path.join(dataset, 'data', embedding))["embeddings"].astype('float32')) if embedding != 'random' else None  # 预训练词向量
-        self.device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')  # 设备
+        self.device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')  # 设备
 
         self.dropout = 0.5  # 随机失活
         self.require_improvement = 1000  # 若超过1000batch效果还没提升，则提前结束训练

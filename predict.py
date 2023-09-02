@@ -62,9 +62,14 @@ class Predictor:
             vocab = pkl.load(f)
         return vocab
 
+    # def load_model(self):
+    #     model = self.x.Model(self.config).to('cpu')
+    #     model.load_state_dict(torch.load(self.config.save_path, map_location='cpu'))
+    #     return model
+
     def load_model(self):
-        model = self.x.Model(self.config).to('cpu')
-        model.load_state_dict(torch.load(self.config.save_path, map_location='cpu'))
+        model = self.x.Model(self.config)
+        model.load_state_dict(torch.load(self.config.save_path))
         return model
 
     def get_key_map(self, dataset):
