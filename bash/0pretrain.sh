@@ -1,4 +1,11 @@
 #!/bin/bash
 
+#python pretrain_vocab.py \
+#       --dataset data/Comments \
+#       --word_vector source/sgns.sogou.char \
+#       --use_word False
+
 python pretrain_vocab.py \
-       --dataset data/Comments
+       --dataset data/Comments \
+       --word_vector source/sgns.merge.char \
+       --use_word False

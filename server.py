@@ -126,14 +126,15 @@ parser = argparse.ArgumentParser()
 # 添加参数
 parser.add_argument('--model', type=str, default='TextRCNN', help='the model to be used')
 parser.add_argument('--dataset', type=str, default='data/Comments', help='the dataset path')
+parser.add_argument('--use_word', default=False, type=bool, help='True for word, False for char')
 # 解析参数
 args = parser.parse_args()
 
 if __name__ == "__main__":
     model = args.model
     dataset = args.dataset
+    use_word = args.use_word
     embedding = 'vocab.embedding.npz'
-    use_word = False
 
     pred = Predictor(model, dataset, embedding, use_word)
 

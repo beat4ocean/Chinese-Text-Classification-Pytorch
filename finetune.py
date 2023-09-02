@@ -10,9 +10,9 @@ import argparse
 # 创建命令行参数解析器
 parser = argparse.ArgumentParser(description='Chinese Text Classification')
 parser.add_argument('--model', type=str, required=True, help='choose a model: TextCNN, TextRNN, FastText, TextRCNN, TextRNN_Att, DPCNN, Transformer')
+parser.add_argument('--dataset', required=True, type=str, help='choose a dataset')
 parser.add_argument('--embedding', default='pre_trained', type=str, help='random or pre_trained')
 parser.add_argument('--use_word', default=False, type=bool, help='True for word, False for char')
-parser.add_argument('--dataset', required=True, type=str, help='choose a dataset')
 args = parser.parse_args()
 
 if __name__ == '__main__':
