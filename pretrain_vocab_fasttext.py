@@ -8,8 +8,7 @@ import pickle as pkl
 def load_pretrained_embeddings(dataset, emb_dim):
     # 加载数据集和预训练词向量的路径
     vocab_dir = os.path.join(dataset, "data/vocab.pkl")
-    pretrain_dir = os.path.join(dataset, "data/sgns.sogou.char")
-    filename_trimmed_dir = os.path.join(dataset, "data/vocab.embedding.sougou")
+    comp_vocab_dir = os.path.join(dataset, "data/vocab.embedding")
 
     # 加载词汇表
     with open(vocab_dir, 'rb') as f:
@@ -19,7 +18,7 @@ def load_pretrained_embeddings(dataset, emb_dim):
     embeddings = np.random.rand(len(word_to_id), emb_dim)
 
     # 加载预训练词向量
-    with open(pretrain_dir, "r", encoding='UTF-8') as f:
+    with open(word_vector, "r", encoding='UTF-8') as f:
         for line in f.readlines():
             lin = line.strip().split(" ")
             if lin[0] in word_to_id:
@@ -28,15 +27,17 @@ def load_pretrained_embeddings(dataset, emb_dim):
                 embeddings[idx] = np.asarray(emb, dtype='float32')
 
     # 保存压缩后的词向量
-    np.savez_compressed(filename_trimmed_dir, embeddings=embeddings)
+    np.savez_compressed(comp_vocab_dir, embeddings=embeddings)
 
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument('--dataset', type=str, default='data/Comments', help='the dataset path')
+    parser.add_argument('--word_vector', type=str, default='source/sgns.sogou.char', help='the dataset path')
     args = parser.parse_args()
 
     dataset = args.dataset
+    word_vector = args.word_vector
     emb_dim = 300
 
     load_pretrained_embeddings(dataset, emb_dim)

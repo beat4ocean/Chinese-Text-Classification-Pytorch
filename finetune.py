@@ -19,7 +19,7 @@ if __name__ == '__main__':
     dataset = args.dataset
 
     # 设置词向量文件名
-    embedding = 'vocab.embedding.sougou.npz'
+    embedding = 'vocab.embedding.npz'
 
     # 根据参数选择词向量类型
     if args.embedding == 'random':

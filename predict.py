@@ -103,7 +103,7 @@ args = parser.parse_args()
 if __name__ == "__main__":
     model = args.model
     dataset = args.dataset
-    embedding = 'vocab.embedding.sougou.npz'
+    embedding = 'vocab.embedding.npz'
     use_word = False
 
     pred = Predictor(model, dataset, embedding, use_word)
