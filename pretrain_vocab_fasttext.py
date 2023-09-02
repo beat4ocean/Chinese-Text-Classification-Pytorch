@@ -33,7 +33,7 @@ def load_pretrained_embeddings(dataset, emb_dim):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument('--dataset', type=str, default='data/Comments', help='the dataset path')
-    parser.add_argument('--word_vector', type=str, default='source/sgns.sogou.char', help='the dataset path')
+    parser.add_argument('--word_vector', type=str, default='source/sgns.merge.char', help='the dataset path')
     args = parser.parse_args()
 
     dataset = args.dataset

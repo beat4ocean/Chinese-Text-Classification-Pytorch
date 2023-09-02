@@ -50,7 +50,7 @@ if __name__ == "__main__":
     # 解析命令行参数
     parser = argparse.ArgumentParser()
     parser.add_argument('--dataset', type=str, default='data/Comments', help='the dataset path')
-    parser.add_argument('--word_vector', type=str, default='source/sgns.sogou.char', help='the dataset path')
+    parser.add_argument('--word_vector', type=str, default='source/sgns.merge.char', help='the dataset path')
     parser.add_argument('--use_word', default=0, type=int, help='1 for word, 0 for char')
     args = parser.parse_args()
 
