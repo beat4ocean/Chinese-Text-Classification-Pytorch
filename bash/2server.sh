@@ -3,4 +3,4 @@
 python server.py \
        --model TextRCNN \
        --dataset data/Comments \
-       --use_word False
+       --use_word 0

@@ -7,33 +7,33 @@ from train_eval import train, init_network
 from importlib import import_module
 import argparse
 
-# 创建命令行参数解析器
-parser = argparse.ArgumentParser(description='Chinese Text Classification')
-parser.add_argument('--model', type=str, required=True, help='choose a model: TextCNN, TextRNN, FastText, TextRCNN, TextRNN_Att, DPCNN, Transformer')
-parser.add_argument('--dataset', required=True, type=str, help='choose a dataset')
-parser.add_argument('--embedding', default='pre_trained', type=str, help='random or pre_trained')
-parser.add_argument('--use_word', default=False, type=bool, help='True for word, False for char')
-args = parser.parse_args()
-
 if __name__ == '__main__':
+    # 创建命令行参数解析器
+    parser = argparse.ArgumentParser(description='Chinese Text Classification')
+    parser.add_argument('--model', type=str, required=True, help='choose a model: TextCNN, TextRNN, FastText, TextRCNN, TextRNN_Att, DPCNN, Transformer')
+    parser.add_argument('--dataset', required=True, type=str, help='choose a dataset')
+    parser.add_argument('--embedding', default='pre_trained', type=str, help='random or pre_trained')
+    parser.add_argument('--use_word', default=0, type=int, help='1 for word, 0 for char')
+    args = parser.parse_args()
+
+    model_name = args.model
     dataset = args.dataset
+    embedding = args.embedding
+    use_word = bool(args.use_word)
 
     # 设置词向量文件名
     embedding = 'vocab.embedding.npz'
 
-    # 根据参数选择词向量类型
-    if args.embedding == 'random':
-        embedding = 'random'
-
-    model_name = args.model
-
     # 导入模型和工具函数
+    # FastText
     if model_name == 'FastText':
         from utils_fasttext import build_dataset, build_iterator, get_time_dif
 
+        # 根据参数选择词向量类型
         embedding = 'random'
 
-    else:  # 'TextRCNN'  # TextCNN, TextRNN, FastText, TextRCNN, TextRNN_Att, DPCNN, Transformer
+    # 'TextRCNN'  # TextCNN, TextRNN, FastText, TextRCNN, TextRNN_Att, DPCNN, Transformer
+    else:
         from utils import build_dataset, build_iterator, get_time_dif
 
     x = import_module('models.' + model_name)
@@ -47,7 +47,7 @@ if __name__ == '__main__':
     start_time = time.time()
     print("Loading data...")
     # 加载数据集并生成迭代器
-    vocab, train_data, dev_data, test_data = build_dataset(config, args.use_word)
+    vocab, train_data, dev_data, test_data = build_dataset(config, use_word)
     train_iter = build_iterator(train_data, config)
     dev_iter = build_iterator(dev_data, config)
     test_iter = build_iterator(test_data, config)

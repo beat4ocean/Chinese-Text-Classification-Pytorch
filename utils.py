@@ -36,17 +36,17 @@ def build_vocab(file_path, tokenizer, max_size, min_freq):
     return vocab_dic
 
 
-def build_dataset(config, ues_word):
+def build_dataset(config, use_word):
     """
     构建数据集
     :param config: 配置参数
-    :param ues_word: 是否使用词级别分词
+    :param use_word: 是否使用词级别分词
     :return: 词表字典，训练集，验证集，测试集
     """
-    if ues_word:
-        tokenizer = lambda x: list(jieba.cut(x))
+    if use_word:
+        tokenizer = lambda x: list(jieba.cut(x))  # 使用jieba分词
     else:
-        tokenizer = lambda x: [y for y in x]  # char-level
+        tokenizer = lambda x: [y for y in x]  # 字符级别
     if os.path.exists(config.vocab_path):
         vocab = pkl.load(open(config.vocab_path, 'rb'))
     else:

@@ -19,7 +19,8 @@ class Config(object):
         self.vocab_path = os.path.join(dataset, 'data', 'vocab.pkl')  # 词表
         self.save_path = os.path.join(dataset, 'saved_dict', self.model_name + '.ckpt')  # 模型训练结果
         self.log_path = os.path.join(dataset, 'log', self.model_name)
-        self.embedding_pretrained = torch.tensor(np.load(os.path.join(dataset, 'data', embedding))["embeddings"].astype('float32')) if embedding != 'random' else None  # 预训练词向量
+        self.embedding_pretrained = torch.tensor(np.load(os.path.join(dataset, 'data', embedding))["embeddings"].astype('float32')) \
+            if embedding != 'random' else None  # 预训练词向量
         self.device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')  # 设备
 
         self.dropout = 0  # 随机失活
@@ -46,8 +47,7 @@ class Model(nn.Module):
             self.embedding = nn.Embedding.from_pretrained(config.embedding_pretrained, freeze=False)
         else:
             self.embedding = nn.Embedding(config.n_vocab, config.embed, padding_idx=config.n_vocab - 1)
-        self.lstm = nn.LSTM(config.embed, config.hidden_size, config.num_layers,
-                            bidirectional=True, batch_first=True, dropout=config.dropout)
+        self.lstm = nn.LSTM(config.embed, config.hidden_size, config.num_layers, bidirectional=True, batch_first=True, dropout=config.dropout)
         self.maxpool = nn.MaxPool1d(config.pad_size)
         self.fc = nn.Linear(config.hidden_size * 2 + config.embed, config.num_classes)
 
