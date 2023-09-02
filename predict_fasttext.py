@@ -7,24 +7,54 @@ from importlib import import_module
 
 key_map = {}
 
+# 创建解析器
+parser = argparse.ArgumentParser()
+# 添加参数
+parser.add_argument('--model', type=str, default='FastText', help='the model to be used')
+parser.add_argument('--dataset', type=str, default='data/Comments', help='the dataset path')
+parser.add_argument('--use_word', default=0, type=int, help='1 for word, 0 for char')
+# 解析参数
+args = parser.parse_args()
+
+model = args.model
+dataset = args.dataset
+use_word = bool(args.use_word)
+embedding = 'vocab.embedding.npz'
+
 
 class Predictor:
     def __init__(self, model_name, dataset, embedding, use_word):
         self.use_word = use_word
-        self.tokenizer = self.get_tokenizer()
+        self.tokenizer = self._tokenizer_word() if self.use_word else self._tokenizer_char()
         self.x = import_module('models.' + model_name)
         self.config = self.x.Config(dataset, embedding)
         self.vocab = self.load_vocab()
         self.pad_size = self.config.pad_size
         self.model = self.load_model()
+        self.key_map = self._get_key_map()
 
-        self.key_map = self.get_key_map(dataset)
+    def _get_key_map(self):
+        with open(os.path.join(dataset, 'data/class.txt'), 'r') as file:
+            lines = file.readlines()
+            for i, line in enumerate(lines):
+                class_name = line.strip()
+                key_map[i] = class_name
+        return key_map
 
-    def get_tokenizer(self):
-        if self.use_word:
-            return lambda x: list(jieba.cut(x))
-        else:
-            return lambda x: [y for y in x]
+    # 使用字符级别的tokenizer
+    def _tokenizer_char(self):
+        def tokenizer(text):
+            return [char for char in text]
+
+        return tokenizer
+
+    # 使用单词级别的tokenizer
+    def _tokenizer_word(self):
+        def tokenizer(text):
+            # return text.strip().split()
+            return list(jieba.cut(text))
+
+        return tokenizer
 
     def load_vocab(self):
         with open(self.config.vocab_path, 'rb') as f:
@@ -58,6 +88,7 @@ class Predictor:
                 else:
                     tokens = tokens[:self.pad_size]
                     seq_len = self.pad_size
+            # Convert words to ids
             for token in tokens:
                 words_line.append(self.vocab.get(token, self.vocab.get('<UNK>')))
             words_lines.append(words_line)
@@ -91,21 +122,7 @@ class Predictor:
         return preds
 
 
-# 创建解析器
-parser = argparse.ArgumentParser()
-# 添加参数
-parser.add_argument('--model', type=str, default='FastText', help='the model to be used')
-parser.add_argument('--dataset', type=str, default='data/Comments', help='the dataset path')
-parser.add_argument('--use_word', default=0, type=int, help='1 for word, 0 for char')
-# 解析参数
-args = parser.parse_args()
-
 if __name__ == "__main__":
-    model = args.model
-    dataset = args.dataset
-    use_word = bool(args.use_word)
-    embedding = 'vocab.embedding.npz'
-
     pred = Predictor(model, dataset, embedding, use_word)
 
     # 预测一条
