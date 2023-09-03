@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>文本分类</title>
+    <style>
+        /* 设置输入文本框的宽度和高度 */
+        #text_message {
+            width: 1000px;
+            height: 200px;
+        }
+    </style>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>
+        function submit() {
+            // 获取输入文本
+            var text = $("#text_message").val();
+
+            // 构建请求数据对象
+            var requestData = {
+                "text": text
+            };
+
+            // 发送POST请求
+            $.ajax({
+                type: 'POST',
+                url: "/text_predict",
+                contentType: "application/json",
+                data: JSON.stringify(requestData),
+                dataType: "json",
+                success: function (data) {
+                    // 构造结果列表
+                    var result = "<ul>";
+                    for (var i = 0; i < data.length; i++) {
+                        var label = data[i][0];
+                        var score = data[i][1].toFixed(2);
+                        var resultItem = label + ": " + score;
+                        result += "<li>" + resultItem + "</li>";
+                    }
+                    result += "</ul>";
+
+                    // 显示预测结果
+                    $("#result").html(result);
+                },
+                error: function () {
+                    // 显示网络连接超时错误信息
+                    $("#result").html("<strong>网络连接超时！</strong>");
+                }
+            });
+        }
+    </script>
+</head>
+<body>
+<h1>用户评论文本分析系统</h1>
+<textarea id="text_message"></textarea><br>
+<button onclick="submit()">开始分析</button>
+<div id="result"></div>
+</body>
+</html>
