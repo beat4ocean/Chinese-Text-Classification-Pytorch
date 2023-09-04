@@ -1,3 +1,4 @@
+import argparse
 import jieba
 import pickle as pkl
 import os
@@ -34,7 +35,7 @@ class Predictor:
         self.key_map = self._get_key_map()
 
     def _get_key_map(self):
-        with open(os.path.join(dataset, 'data/class.txt'), 'r') as file:
+        with open(os.path.join(dataset, 'data/class.txt'), 'r', encoding='utf-8') as file:
             lines = file.readlines()
             for i, line in enumerate(lines):
                 class_name = line.strip()
@@ -73,7 +74,7 @@ class Predictor:
 
     def get_key_map(self, dataset):
         key_map = {}
-        with open(os.path.join(dataset, 'data/class.txt'), 'r') as file:
+        with open(os.path.join(dataset, 'data/class.txt'), 'r', encoding='utf-8') as file:
             lines = file.readlines()
             for i, line in enumerate(lines):
                 class_name = line.strip()
@@ -111,11 +112,16 @@ class Predictor:
     def predict_text_with_all_labels(self, query):
         query = [query]
         data = self.preprocess_texts(query)
+
         with torch.no_grad():
             outputs = self.model(data)
-            probabilities = torch.softmax(outputs, dim=0)
+            # probabilities = torch.softmax(outputs, dim=0) # 在指定维度上计算 softmax，而 F.softmax(outputs) 则是在默认维度上计算 softmax。
+            # probabilities = F.softmax(outputs)  # 算输出张量的 softmax 函数，将输出的每个元素转换为表示概率的值，确保所有概率相加等于1。适用于多分类问题。
+            probabilities = F.sigmoid(outputs)  # 获取张量中最大值的索引，返回张量中最大值元素的索引。常用于多分类问题中确定最可能的类别。
             labels = self.key_map.values()
-            probabilities = [prob.item() for prob in probabilities]
+
+            probabilities = probabilities.tolist()
+
         return list(zip(labels, probabilities))
 
     def predict_list(self, queries):
