@@ -3,6 +3,7 @@ import jieba
 import pickle as pkl
 import os
 import torch
+import torch.nn.functional as F
 from importlib import import_module
 
 from flask import Flask, request, render_template, jsonify
@@ -38,7 +39,7 @@ class Predictor:
         self.key_map = self._get_key_map()
 
     def _get_key_map(self):
-        with open(os.path.join(dataset, 'data/class.txt'), 'r') as file:
+        with open(os.path.join(dataset, 'data/class.txt'), 'r', encoding='utf-8') as file:
             lines = file.readlines()
             for i, line in enumerate(lines):
                 class_name = line.strip()
@@ -77,7 +78,7 @@ class Predictor:
 
     def get_key_map(self, dataset):
         key_map = {}
-        with open(os.path.join(dataset, 'data/class.txt'), 'r') as file:
+        with open(os.path.join(dataset, 'data/class.txt'), 'r', encoding='utf-8') as file:
             lines = file.readlines()
             for i, line in enumerate(lines):
                 class_name = line.strip()
@@ -107,12 +108,26 @@ class Predictor:
     def predict_text_with_all_labels(self, query):
         query = [query]
         data = self.preprocess_texts(query)
+
         with torch.no_grad():
             outputs = self.model(data)
-            probabilities = torch.softmax(outputs, dim=0)
+            probabilities = F.softmax(outputs)
             labels = self.key_map.values()
             probabilities = [prob.item() for prob in probabilities]
         return list(zip(labels, probabilities))
+
+    # def predict_text_with_all_labels(self, query):
+    #     query = [query]
+    #     data = self.preprocess_texts(query)
+    #
+    #     with torch.no_grad():
+    #         outputs = self.model(data)
+    #         probabilities = F.sigmoid(outputs)
+    #         labels = self.key_map.values()
+    #
+    #         probabilities = probabilities.tolist()  # 转换为列表
+    #
+    #     return list(zip(labels, probabilities))
 
 
 app = Flask(__name__)
