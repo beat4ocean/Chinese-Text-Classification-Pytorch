@@ -63,7 +63,7 @@ def build_dataset(config, use_word):
         return (t2 * 14918087 * 18408749 + t1 * 14918087) % buckets
 
     def load_dataset(path, pad_size=32):
-        contents = []
+        words_lines = []
         with open(path, 'r', encoding='UTF-8') as f:
             for line in tqdm(f):
                 lin = line.strip()
@@ -71,17 +71,17 @@ def build_dataset(config, use_word):
                     continue
                 content, label = lin.split('\t')
                 words_line = []
-                token = tokenizer(content)
-                seq_len = len(token)
+                tokens = tokenizer(content)
+                seq_len = len(tokens)
                 if pad_size:
-                    if len(token) < pad_size:
-                        token.extend([PAD] * (pad_size - len(token)))
+                    if len(tokens) < pad_size:
+                        tokens.extend([PAD] * (pad_size - len(tokens)))
                     else:
-                        token = token[:pad_size]
+                        tokens = tokens[:pad_size]
                         seq_len = pad_size
                 # 将词转换为ID
-                for word in token:
-                    words_line.append(vocab.get(word, vocab.get(UNK)))
+                for token in tokens:
+                    words_line.append(vocab.get(token, vocab.get(UNK)))
 
                 # fasttext ngram
                 buckets = config.n_gram_vocab
@@ -92,8 +92,8 @@ def build_dataset(config, use_word):
                     bigram.append(biGramHash(words_line, i, buckets))
                     trigram.append(triGramHash(words_line, i, buckets))
                 # -----------------
-                contents.append((words_line, int(label), seq_len, bigram, trigram))
-        return contents  # [([...], 0), ([...], 1), ...]
+                words_lines.append((words_line, int(label), seq_len, bigram, trigram))
+        return words_lines  # [([...], 0), ([...], 1), ...]
 
     train = load_dataset(config.train_path, config.pad_size)
     dev = load_dataset(config.dev_path, config.pad_size)
@@ -158,7 +158,7 @@ def build_iterator(dataset, config):
     return iterator
 
 
-def get_time_diff(start_time):
+def get_time_dif(start_time):
     """获取已使用时间"""
     end_time = time.time()
     time_diff = end_time - start_time

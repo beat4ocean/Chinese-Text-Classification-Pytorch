@@ -94,7 +94,7 @@ class Predictor:
                 else:
                     tokens = tokens[:self.pad_size]
                     seq_len = self.pad_size
-            # Convert words to ids
+             # 将词转换为ID
             for token in tokens:
                 words_line.append(self.vocab.get(token, self.vocab.get('<UNK>')))
             words_lines.append(words_line)

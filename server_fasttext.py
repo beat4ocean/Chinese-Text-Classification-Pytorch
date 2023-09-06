@@ -3,23 +3,26 @@ import jieba
 import pickle as pkl
 import os
 import torch
-import numpy as np
+import torch.nn.functional as F
 from importlib import import_module
+
+from flask import Flask, request, render_template, jsonify
 
 key_map = {}
 
 # 创建解析器
 parser = argparse.ArgumentParser()
 # 添加参数
-parser.add_argument('--model', type=str, default='FastText', help='the model to be used')
+parser.add_argument('--model', type=str, default='TextRCNN', help='the model to be used')
 parser.add_argument('--dataset', type=str, default='data/Comments', help='the dataset path')
 parser.add_argument('--use_word', default=0, type=int, help='1 for word, 0 for char')
+parser.add_argument('--port', type=int, default=5000, help='the server port')
 # 解析参数
 args = parser.parse_args()
-
 model = args.model
 dataset = args.dataset
 use_word = bool(args.use_word)
+port = args.port
 embedding = 'vocab.embedding.npz'
 
 
@@ -94,22 +97,11 @@ class Predictor:
                 else:
                     tokens = tokens[:self.pad_size]
                     seq_len = self.pad_size
-            # 将词转换为ID
+             # 将词转换为ID
             for token in tokens:
                 words_line.append(self.vocab.get(token, self.vocab.get('<UNK>')))
 
             # fasttext ngram
-            def biGramHash(sequence, t, buckets):
-                t1 = sequence[t - 1] if t - 1 >= 0 else 0
-                # 计算二元hash值
-                return (t1 * 14918087) % buckets
-
-            def triGramHash(sequence, t, buckets):
-                t1 = sequence[t - 1] if t - 1 >= 0 else 0
-                t2 = sequence[t - 2] if t - 2 >= 0 else 0
-                # 计算三元hash值
-                return (t2 * 14918087 * 18408749 + t1 * 14918087) % buckets
-
             buckets = self.config.n_gram_vocab
             bigram = []
             trigram = []
@@ -119,18 +111,10 @@ class Predictor:
                 trigram.append(triGramHash(words_line, i, buckets))
             # -----------------
 
-            words_lines.append((words_line, bigram, trigram))
+            words_lines.append((words_line, int(label), seq_len, bigram, trigram))
             seq_lens.append(seq_len)
 
         return torch.LongTensor(words_lines), torch.LongTensor(seq_lens)
-
-    def predict_text(self, query):
-        query = [query]
-        data = self.preprocess_texts(query)
-        with torch.no_grad():
-            outputs = self.model(data)
-            num = torch.argmax(outputs)
-        return self.key_map[int(num)]
 
     def predict_text_with_all_labels(self, query):
         query = [query]
@@ -139,31 +123,41 @@ class Predictor:
         with torch.no_grad():
             outputs = self.model(data)
             # probabilities = torch.softmax(outputs, dim=0) # 在指定维度上计算 softmax，而 F.softmax(outputs) 则是在默认维度上计算 softmax。
-            # probabilities = F.softmax(outputs)  # 算输出张量的 softmax 函数，将输出的每个元素转换为表示概率的值，确保所有概率相加等于1。适用于多分类问题。
-            probabilities = F.sigmoid(outputs)  # 获取张量中最大值的索引，返回张量中最大值元素的索引。常用于多分类问题中确定最可能的类别。
+            probabilities = F.softmax(outputs)  # 算输出张量的 softmax 函数，将输出的每个元素转换为表示概率的值，确保所有概率相加等于1。适用于多分类问题。
+            # probabilities = F.sigmoid(outputs)  # 获取张量中最大值的索引，返回张量中最大值元素的索引。常用于多分类问题中确定最可能的类别。
             labels = self.key_map.values()
 
             probabilities = probabilities.tolist()
 
         return list(zip(labels, probabilities))
 
-    def predict_list(self, queries):
-        data = self.preprocess_texts(queries)
-        with torch.no_grad():
-            outputs = self.model(data)
-            nums = torch.argmax(outputs, dim=1)
-            preds = [self.key_map[int(num)] for num in list(np.array(nums))]
-        return preds
+
+app = Flask(__name__)
+
+
+@app.route('/')
+def home():
+    return render_template('index.html')
+
+
+@app.route('/text_predict', methods=['POST'])
+def text_predict():
+    # 获取 POST 请求的数据
+    data = request.get_json()  # 获取 POST 请求的 JSON 数据
+    text = data.get('text')  # 获取 content 字段的值
+
+    # 输入验证
+    if not text or text.strip() == "":
+        return jsonify({"error": "Invalid input"})
+
+    result_list = pred.predict_text_with_all_labels(text)
+    print("text:", text, "\tpredict:", result_list)
+
+    # 构建返回的 JSON 数据
+    return jsonify(result_list)
 
 
 if __name__ == "__main__":
     pred = Predictor(model, dataset, embedding, use_word)
 
-    # 预测一条
-    query = "火凤凰租房"
-    print(pred.predict_text(query))
-    print(pred.predict_text_with_all_labels(query))
-
-    # 预测一个列表
-    querys = ["比亚迪路过", "240511480车友+"]
-    print(pred.predict_list(querys))
+    app.run(host='0.0.0.0', port=port)

@@ -19,7 +19,6 @@ parser.add_argument('--use_word', default=0, type=int, help='1 for word, 0 for c
 parser.add_argument('--port', type=int, default=5000, help='the server port')
 # 解析参数
 args = parser.parse_args()
-
 model = args.model
 dataset = args.dataset
 use_word = bool(args.use_word)
@@ -98,7 +97,7 @@ class Predictor:
                 else:
                     tokens = tokens[:self.pad_size]
                     seq_len = self.pad_size
-            # Convert words to ids
+             # 将词转换为ID
             for token in tokens:
                 words_line.append(self.vocab.get(token, self.vocab.get('<UNK>')))
             words_lines.append(words_line)
